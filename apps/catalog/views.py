@@ -2,7 +2,7 @@ from rest_framework import generics, mixins, status, viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from common.pagination import CatalogPagination
+from common.pagination import StandardPagination
 from common.permissions import IsMarketplaceAdmin
 from common.views import LocalizedResponseMixin
 
@@ -13,7 +13,7 @@ from .serializers import CategoryCreateSerializer, CategoryReadSerializer, Categ
 class PublicCategoryViewSet(LocalizedResponseMixin, viewsets.ReadOnlyModelViewSet):
     permission_classes = (AllowAny,)
     serializer_class = CategoryReadSerializer
-    pagination_class = CatalogPagination
+    pagination_class = StandardPagination
     queryset = Category.objects.filter(is_active=True).order_by("pk")
 
 

@@ -1,11 +1,16 @@
 from django.db import transaction
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from common.pagination import StandardPagination
+from common.permissions import IsCustomer
+
+from .models import Address
 from .serializers import (
+    AddressSerializer,
     LoginSerializer,
     LogoutSerializer,
     ProfileSerializer,
@@ -70,3 +75,22 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"user": serializer.data})
+
+
+class AddressViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsCustomer,)
+    serializer_class = AddressSerializer
+    pagination_class = StandardPagination
+
+    def get_queryset(self):
+        addresses = Address.objects.filter(user=self.request.user).order_by("pk")
+        if self.action == "partial_update":
+            return addresses.select_for_update()
+        return addresses
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @transaction.atomic
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)

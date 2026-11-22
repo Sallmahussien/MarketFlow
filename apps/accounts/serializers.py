@@ -8,7 +8,7 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
-from .models import User
+from .models import Address, User
 
 
 def auth_payload(user, access, refresh, context):
@@ -107,3 +107,13 @@ class LogoutSerializer(serializers.Serializer):
 
     def save(self):
         self.validated_data["refresh"].blacklist()
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = (
+            "id", "first_name", "last_name", "phone_number", "building", "street_name",
+            "apartment", "city", "governorate", "postal_code",
+        )
+        read_only_fields = ("id",)

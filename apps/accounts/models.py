@@ -39,3 +39,18 @@ class User(AbstractUser):
     def clean(self):
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
+
+
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="addresses")
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    phone_number = models.CharField(max_length=20)
+    building = models.CharField(max_length=100)
+    street_name = models.CharField(max_length=255)
+    apartment = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
+    governorate = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
