@@ -7,7 +7,7 @@ from common.permissions import IsMarketplaceAdmin
 from common.views import LocalizedResponseMixin
 
 from .models import Category
-from .serializers import CategoryCreateSerializer, CategoryReadSerializer, CategoryUpdateSerializer
+from .category_serializers import CategoryCreateSerializer, CategoryReadSerializer, CategoryUpdateSerializer
 
 
 class PublicCategoryViewSet(LocalizedResponseMixin, viewsets.ReadOnlyModelViewSet):

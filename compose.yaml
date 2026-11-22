@@ -9,6 +9,7 @@ services:
       POSTGRES_PORT: "5432"
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-marketflow-local-development-only}
       JWT_ACCESS_TOKEN_MINUTES: ${JWT_ACCESS_TOKEN_MINUTES:-120}
+      PRODUCT_IMAGE_BASE_URL: ${PRODUCT_IMAGE_BASE_URL:?Set PRODUCT_IMAGE_BASE_URL}
     depends_on:
       db:
         condition: service_healthy

@@ -14,6 +14,8 @@ from datetime import timedelta
 from os import environ
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -142,6 +144,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+PRODUCT_IMAGE_BASE_URL = environ.get('PRODUCT_IMAGE_BASE_URL', '').strip()
+if not PRODUCT_IMAGE_BASE_URL:
+    raise ImproperlyConfigured('Set the PRODUCT_IMAGE_BASE_URL environment variable.')
 
 
 # Email
