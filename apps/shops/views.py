@@ -1,10 +1,12 @@
-from django.utils.cache import patch_vary_headers
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from common.permissions import IsMarketplaceAdmin
+from common.views import LocalizedResponseMixin
+
 from .models import Shop
-from .permissions import IsMarketplaceAdmin, IsSeller
+from .permissions import IsSeller
 from .selectors import admin_shops, public_shops
 from .serializers import (
     AdminShopDetailSerializer,
@@ -18,13 +20,6 @@ from .serializers import (
     ShopUpdateSerializer,
 )
 from .services import create_application, decide_application, update_own_shop
-
-
-class LocalizedResponseMixin:
-    def finalize_response(self, request, response, *args, **kwargs):
-        response = super().finalize_response(request, response, *args, **kwargs)
-        patch_vary_headers(response, ("Accept-Language",))
-        return response
 
 
 class ShopListCreateView(LocalizedResponseMixin, generics.ListCreateAPIView):
