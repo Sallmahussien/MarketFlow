@@ -13,6 +13,7 @@ RUN useradd --system --no-create-home django
 COPY manage.py .
 COPY config/ ./config/
 COPY apps/ ./apps/
+COPY common/ ./common/
 
 USER django
 EXPOSE 8000
