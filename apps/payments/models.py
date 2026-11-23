@@ -12,6 +12,8 @@ class Payment(models.Model):
         FAILED = "FAILED"
         EXPIRED = "EXPIRED"
 
+    PENDING_STATES = (State.CREATING, State.OPEN, State.PROCESSING)
+
     order = models.ForeignKey("orders.Order", on_delete=models.PROTECT, related_name="payments")
     provider = models.CharField(max_length=32, default="mock")
     reference = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)

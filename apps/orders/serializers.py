@@ -16,7 +16,7 @@ class OrderSummarySerializer(serializers.ModelSerializer):
     payment_status = serializers.SerializerMethodField()
 
     def get_payment_status(self, order):
-        if order.payment_state in (Payment.State.CREATING, Payment.State.OPEN, Payment.State.PROCESSING):
+        if order.payment_state in Payment.PENDING_STATES:
             return "PENDING"
         return order.payment_state
 
