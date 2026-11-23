@@ -4,6 +4,10 @@ from django.db import models
 class Fulfillment(models.Model):
     class Status(models.TextChoices):
         PENDING = "PENDING"
+        PREPARING = "PREPARING"
+        SHIPPED = "SHIPPED"
+        DELIVERED = "DELIVERED"
+        CANCELED = "CANCELED"
 
     order = models.ForeignKey("orders.Order", on_delete=models.CASCADE, related_name="fulfillments")
     shop = models.ForeignKey("shops.Shop", on_delete=models.PROTECT, related_name="fulfillments")

@@ -7,7 +7,11 @@ class Order(models.Model):
     class Status(models.TextChoices):
         PENDING_PAYMENT = "PENDING_PAYMENT"
         CONFIRMED = "CONFIRMED"
+        PARTIALLY_FULFILLED = "PARTIALLY_FULFILLED"
+        COMPLETED = "COMPLETED"
         EXPIRED = "EXPIRED"
+
+    PAID_STATUSES = (Status.CONFIRMED, Status.PARTIALLY_FULFILLED, Status.COMPLETED)
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="orders")
     cart = models.ForeignKey("carts.Cart", on_delete=models.PROTECT, related_name="orders")

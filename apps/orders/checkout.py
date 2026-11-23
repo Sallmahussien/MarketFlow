@@ -78,7 +78,7 @@ def checkout(user, address_id, build_absolute_uri):
             expire_if_due(order)
             if order.status == Order.Status.EXPIRED:
                 break
-            if order.status == Order.Status.CONFIRMED:
+            if order.status in Order.PAID_STATUSES:
                 return {"order_id": order.pk, "order_status": order.status}, False
             if payment.state == Payment.State.PROCESSING:
                 raise GatewayUnavailable("Payment is processing. Retry checkout to check its status.")
