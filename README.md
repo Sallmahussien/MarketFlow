@@ -13,3 +13,9 @@ Set `PRODUCT_IMAGE_BASE_URL` and a private `MOCK_PAYMENT_SECRET` in the environm
 ### Callback contract
 
 `POST /api/v1/checkout/callback/` accepts JSON with `event_id`, `order_reference`, `transaction_id`, `status` (`SUCCESS` or `FAILED`), `amount`, and `currency` (`EGP`). The mock assigns one transaction UUID per session. Send `X-Mock-Signature` containing the lowercase hexadecimal HMAC-SHA256 of the exact request bytes using `MOCK_PAYMENT_SECRET`. The mock form uses the same signed callback handler in-process. A verified callback returns HTTP 200 with `{"received": true}`. Late successful payments and additional charges are recorded for reconciliation.
+
+## Customer order history
+
+Use a customer bearer token with `GET /api/v1/orders/` and `GET /api/v1/orders/{id}/`. The list supports `page`, `page_size`, `status`, and `ordering` (`-created_at` by default, or `created_at` for oldest first). The detail includes the order's saved address and amounts, item quantities and unit prices, and shop fulfillments. Item titles use the current catalog translation selected by `Accept-Language`.
+
+Both endpoints summarize payment as `PENDING`, `FAILED`, `EXPIRED`, or `SUCCESS`. A successful charge takes precedence over other attempts. Use the order's `status` to determine whether the order was confirmed, including when a payment arrived after expiry.

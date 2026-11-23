@@ -329,3 +329,96 @@ class CheckoutConcurrencyTests(TransactionTestCase):
         self.assertEqual((order.status, self.product.stock), ("EXPIRED", 1))
         self.assertEqual(PaymentEvent.objects.get().attention_reason, "late_success")
         self.assertFalse(Fulfillment.objects.exists())
+
+
+@override_settings(MOCK_PAYMENT_SECRET="test-only-secret")
+class CustomerOrderAPITests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user, cls.address = customer_with_address("history-buyer")
+        cls.other, cls.other_address = customer_with_address("history-other")
+        cls.product = catalog_product()
+
+    def setUp(self):
+        self.client.force_authenticate(self.user)
+        self.list_url = reverse("orders:list")
+
+    def place_order(self, user, address, quantity=2):
+        add_item(user, self.product.pk, quantity)
+        data, _ = checkout(user, address.pk, lambda path: "http://testserver" + path)
+        return Order.objects.get(pk=data["order_id"])
+
+    def confirm(self, order):
+        payment = order.payments.get()
+        session = MockSession.objects.get(reference=payment.reference)
+        session.outcome = "SUCCESS"
+        receive_callback(*gateway.signed_result(session))
+
+    def test_list_scope_filter_ordering_and_pagination(self):
+        older = self.place_order(self.user, self.address)
+        self.confirm(older)
+        newer = self.place_order(self.user, self.address, quantity=1)
+        self.place_order(self.other, self.other_address)
+        response = self.client.get(self.list_url, {"page_size": 1})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+        self.assertIsNotNone(response.data["next"])
+        summary = response.data["results"][0]
+        self.assertEqual((summary["id"], summary["items_count"], summary["payment_status"]),
+                         (newer.pk, 1, "PENDING"))
+        self.assertNotIn("address_snapshot", summary)
+        self.assertNotIn("payment_url", summary)
+
+        response = self.client.get(self.list_url, {"ordering": "created_at"})
+        self.assertEqual([item["id"] for item in response.data["results"]], [older.pk, newer.pk])
+        response = self.client.get(self.list_url, {"status": "CONFIRMED"})
+        summary, = response.data["results"]
+        self.assertEqual((summary["id"], summary["items_count"], summary["payment_status"]),
+                         (older.pk, 2, "SUCCESS"))
+        for params in ({"status": "INVALID"}, {"ordering": "total_amount"}):
+            self.assertEqual(self.client.get(self.list_url, params).status_code, 400)
+
+    def test_detail_shows_saved_amounts_and_localized_title(self):
+        order = self.place_order(self.user, self.address)
+        url = reverse("orders:detail", args=[order.pk])
+        pending = self.client.get(url).data
+        self.assertEqual(pending["payment_status"], "PENDING")
+        self.assertEqual(pending["fulfillments"], [])
+        self.assertIsNone(pending["items"][0]["fulfillment_id"])
+
+        self.confirm(order)
+        Address.objects.filter(pk=self.address.pk).update(city="Alexandria")
+        Product.objects.filter(pk=self.product.pk).update(price="100.00")
+        Shop.objects.filter(pk=self.product.shop_id).update(shipping_fee="99.00")
+        Payment.objects.create(order=order, state=Payment.State.FAILED, expires_at=order.expires_at)
+        response = self.client.get(url, HTTP_ACCEPT_LANGUAGE="ar-EG")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Accept-Language", response.headers["Vary"])
+        detail = response.data
+        self.assertEqual((detail["status"], detail["payment_status"]), ("CONFIRMED", "SUCCESS"))
+        self.assertEqual(detail["address_snapshot"]["city"], "Cairo")
+        self.assertEqual((detail["subtotal"], detail["shipping_total"], detail["total_amount"]),
+                         ("40.00", "5.00", "45.00"))
+        self.assertIn("expires_at", detail)
+        self.assertNotIn("payments", detail)
+        item, = detail["items"]
+        fulfillment, = detail["fulfillments"]
+        self.assertEqual(item, {
+            "id": order.items.get().pk, "product_id": self.product.pk, "title": "لوحة مفاتيح",
+            "quantity": 2, "unit_price": "20.00", "status": "ACTIVE", "fulfillment_id": fulfillment["id"],
+        })
+        self.assertEqual(fulfillment, {
+            "id": order.fulfillments.get().pk, "shop_id": self.product.shop_id, "status": "PENDING",
+            "shipping_fee": "5.00", "tracking_number": None, "carrier_name": None,
+        })
+
+    def test_order_reads_require_customer_and_hide_other_customers_orders(self):
+        order = self.place_order(self.other, self.other_address)
+        detail_url = reverse("orders:detail", args=[order.pk])
+        self.assertEqual(self.client.get(detail_url).status_code, 404)
+        self.assertEqual(self.client.get(reverse("orders:detail", args=[order.pk + 1])).status_code, 404)
+        self.assertEqual(self.client.get(self.list_url).data["count"], 0)
+        for user, expected in ((self.product.shop.user, 403), (None, 401)):
+            self.client.force_authenticate(user)
+            self.assertEqual(self.client.get(self.list_url).status_code, expected)
+            self.assertEqual(self.client.get(detail_url).status_code, expected)

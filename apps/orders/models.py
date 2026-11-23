@@ -31,10 +31,15 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = "ACTIVE"
+        CANCELED = "CANCELED"
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT)
     shop = models.ForeignKey("shops.Shop", on_delete=models.PROTECT)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
+    status = models.CharField(max_length=10, choices=Status, default=Status.ACTIVE)
     fulfillment = models.ForeignKey("fulfillments.Fulfillment", on_delete=models.PROTECT,
                                     null=True, related_name="items")
