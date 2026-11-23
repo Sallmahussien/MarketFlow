@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     'apps.shops',
     'apps.catalog',
     'apps.carts',
+    'apps.orders',
+    'apps.payments',
+    'apps.fulfillments',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -158,3 +161,6 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+# Configure a separate signing key to enable the local mock gateway.
+MOCK_PAYMENT_SECRET = environ.get("MOCK_PAYMENT_SECRET", "")

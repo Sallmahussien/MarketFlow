@@ -1,6 +1,9 @@
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
+
+from apps.orders.models import Order, OrderItem
 
 from .models import Category, Product, ProductImage
 
@@ -34,6 +37,12 @@ def create_product(shop, values):
 @transaction.atomic
 def update_product(shop, product_id, values):
     product = locked_product(shop, product_id)
+    if "stock" in values and values["stock"] > product.stock:
+        # Reserved units may return to this PositiveIntegerField when checkout expires.
+        reserved = OrderItem.objects.filter(product=product, order__status=Order.Status.PENDING_PAYMENT)
+        reserved_count = reserved.aggregate(count=Sum("quantity", default=0))["count"]
+        if values["stock"] + reserved_count > 2**31 - 1:
+            raise ValidationError({"stock": "Available and reserved stock exceed the supported quantity."})
     if "category_id" in values:
         active_category(values["category_id"])
     if values.get("is_published") and not product.images.exists():

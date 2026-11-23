@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MarketFlow mock payment</title>
+</head>
+<body>
+  <main>
+    <h1>Mock payment</h1>
+    <p>Order #{{ session.order_reference }} · {{ session.amount }} {{ session.currency }}</p>
+    {% if message %}
+      <p>{{ message }}</p>
+    {% else %}
+      <p>Pay by {{ session.expires_at|date:"Y-m-d H:i:s T" }}.</p>
+      <form method="post">
+        {% csrf_token %}
+        <button name="outcome" value="SUCCESS">Simulate successful payment</button>
+        <button name="outcome" value="FAILED">Simulate failed payment</button>
+      </form>
+    {% endif %}
+  </main>
+</body>
+</html>
