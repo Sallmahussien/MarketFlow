@@ -1,0 +1,2410 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MarketFlow API",
+    "version": "1.0.0",
+    "description": "Multi-vendor marketplace with a mock payment gateway. Use Authorize to add a JWT access token."
+  },
+  "servers": [{"url": "/"}],
+  "paths": {
+    "/api/v1/auth/signup/": {
+      "post": {
+        "operationId": "signup",
+        "tags": ["Authentication"],
+        "summary": "Register a customer or seller",
+        "security": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AuthenticationResponse"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SignupRequest"}}}
+        }
+      }
+    },
+    "/api/v1/auth/login/": {
+      "post": {
+        "operationId": "login",
+        "tags": ["Authentication"],
+        "summary": "Sign in with email and password",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AuthenticationResponse"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {"type": "string", "format": "email"},
+                  "password": {"type": "string", "format": "password"}
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh/": {
+      "post": {
+        "operationId": "refresh",
+        "tags": ["Authentication"],
+        "summary": "Rotate a refresh token",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/TokenPair"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"type": "object", "properties": {"refresh": {"type": "string"}}, "required": ["refresh"]}
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout/": {
+      "post": {
+        "operationId": "logout",
+        "tags": ["Authentication"],
+        "summary": "Blacklist the current refresh token",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "204": {"description": "No content"},
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "An authenticated account is required.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"type": "object", "properties": {"refresh": {"type": "string"}}, "required": ["refresh"]}
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/profile/": {
+      "get": {
+        "operationId": "getProfile",
+        "tags": ["Authentication"],
+        "summary": "Get your profile",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProfileResponse"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "An authenticated account is required."
+      },
+      "patch": {
+        "operationId": "updateProfile",
+        "tags": ["Authentication"],
+        "summary": "Update your profile",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProfileResponse"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "An authenticated account is required.",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProfilePatch"}}}
+        }
+      }
+    },
+    "/api/v1/shops/": {
+      "get": {
+        "operationId": "listShops",
+        "tags": ["Shops"],
+        "summary": "List approved active shops",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {"schema": {"type": "array", "items": {"$ref": "#/components/schemas/PublicShop"}}}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      },
+      "post": {
+        "operationId": "applyForShop",
+        "tags": ["Shops"],
+        "summary": "Submit a shop application",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ShopApplication"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ShopCreateRequest"}}}
+        }
+      }
+    },
+    "/api/v1/shops/me/": {
+      "get": {
+        "operationId": "getOwnShop",
+        "tags": ["Shops"],
+        "summary": "Get your shop",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SellerShop"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateOwnShop",
+        "tags": ["Shops"],
+        "summary": "Update your shop",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SellerShop"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required. A meaningful edit to a rejected shop resubmits its application.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ShopUpdatePatch"}}}
+        }
+      }
+    },
+    "/api/v1/shops/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "get": {
+        "operationId": "getShop",
+        "tags": ["Shops"],
+        "summary": "Get an approved active shop",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PublicShop"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/shops/": {
+      "get": {
+        "operationId": "listShopApplications",
+        "tags": ["Shops"],
+        "summary": "List shop applications",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {"schema": {"type": "array", "items": {"$ref": "#/components/schemas/AdminShopList"}}}
+            }
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Marketplace administrator account required.",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {"type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"]}
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/shops/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "get": {
+        "operationId": "getShopApplication",
+        "tags": ["Shops"],
+        "summary": "Get a shop application and owner",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AdminShopDetail"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Marketplace administrator account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "decideShopApplication",
+        "tags": ["Shops"],
+        "summary": "Approve or reject a pending shop",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SellerShop"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Marketplace administrator account required. Rejection requires a reason.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ShopDecisionRequest"}}}
+        }
+      }
+    },
+    "/api/v1/categories/": {
+      "get": {
+        "operationId": "listCategories",
+        "tags": ["Categories"],
+        "summary": "List active categories",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoryReadPage"}}}
+          }
+        },
+        "parameters": [
+          {"name": "page", "in": "query", "schema": {"type": "integer", "minimum": 1, "default": 1}},
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10}
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      }
+    },
+    "/api/v1/categories/{category_id}/": {
+      "parameters": [
+        {
+          "name": "category_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "get": {
+        "operationId": "getCategory",
+        "tags": ["Categories"],
+        "summary": "Get an active category",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoryRead"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/categories/": {
+      "post": {
+        "operationId": "createCategory",
+        "tags": ["Categories"],
+        "summary": "Create a category",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoryRead"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Marketplace administrator account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoryCreateRequest"}}}
+        }
+      }
+    },
+    "/api/v1/admin/categories/{category_id}/": {
+      "parameters": [
+        {
+          "name": "category_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "patch": {
+        "operationId": "updateCategory",
+        "tags": ["Categories"],
+        "summary": "Edit or reactivate a category",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoryRead"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Marketplace administrator account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoryUpdatePatch"}}}
+        }
+      },
+      "delete": {
+        "operationId": "deactivateCategory",
+        "tags": ["Categories"],
+        "summary": "Deactivate a category",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "204": {"description": "No content"},
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Marketplace administrator account required."
+      }
+    },
+    "/api/v1/products/": {
+      "get": {
+        "operationId": "listProducts",
+        "tags": ["Products"],
+        "summary": "List available products",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductReadPage"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "parameters": [
+          {"name": "page", "in": "query", "schema": {"type": "integer", "minimum": 1, "default": 1}},
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10}
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "schema": {"type": "integer", "format": "int64", "minimum": 1, "maximum": 9223372036854775807}
+          },
+          {
+            "name": "shop_id",
+            "in": "query",
+            "schema": {"type": "integer", "format": "int64", "minimum": 1, "maximum": 9223372036854775807}
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "schema": {"oneOf": [{"type": "string", "example": "25.00"}, {"type": "number"}]}
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "schema": {"oneOf": [{"type": "string", "example": "25.00"}, {"type": "number"}]}
+          },
+          {"name": "search", "in": "query", "schema": {"type": "string", "maxLength": 255}},
+          {
+            "name": "ordering",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["created_at", "-created_at", "price", "-price", "stock", "-stock", "title", "-title"]
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createProduct",
+        "tags": ["Products"],
+        "summary": "Create a product draft",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductRead"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required. An approved shop is required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductCreateRequest"}}}
+        }
+      }
+    },
+    "/api/v1/products/{product_id}/": {
+      "parameters": [
+        {
+          "name": "product_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "get": {
+        "operationId": "getProduct",
+        "tags": ["Products"],
+        "summary": "Get an available product",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductRead"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateProduct",
+        "tags": ["Products"],
+        "summary": "Update or publish your product",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductRead"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required. An approved shop is required. Publishing requires at least one image.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductUpdatePatch"}}}
+        }
+      }
+    },
+    "/api/v1/seller/products/": {
+      "get": {
+        "operationId": "listSellerProducts",
+        "tags": ["Products"],
+        "summary": "List your products",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductReadPage"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required. An approved shop is required.",
+        "parameters": [
+          {"name": "page", "in": "query", "schema": {"type": "integer", "minimum": 1, "default": 1}},
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10}
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      }
+    },
+    "/api/v1/seller/products/{product_id}/": {
+      "parameters": [
+        {
+          "name": "product_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "get": {
+        "operationId": "getSellerProduct",
+        "tags": ["Products"],
+        "summary": "Get one of your products",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductRead"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required. An approved shop is required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      }
+    },
+    "/api/v1/products/{product_id}/images/": {
+      "parameters": [
+        {
+          "name": "product_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "post": {
+        "operationId": "addProductImage",
+        "tags": ["Products"],
+        "summary": "Add an image path",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductImage"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required. Provide a relative path such as products/front.jpg. The shop must be approved.",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductImageCreateRequest"}}}
+        }
+      }
+    },
+    "/api/v1/products/{product_id}/images/{image_id}/": {
+      "parameters": [
+        {
+          "name": "product_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        },
+        {
+          "name": "image_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "patch": {
+        "operationId": "setPrimaryImage",
+        "tags": ["Products"],
+        "summary": "Set the primary image",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProductImage"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {"is_primary": {"type": "boolean", "const": true, "example": true}},
+                "required": ["is_primary"]
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteProductImage",
+        "tags": ["Products"],
+        "summary": "Delete an image",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "204": {"description": "No content"},
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required. Removing the last image unpublishes the product."
+      }
+    },
+    "/api/v1/addresses/": {
+      "get": {
+        "operationId": "listAddresses",
+        "tags": ["Addresses"],
+        "summary": "List your delivery addresses",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AddressPage"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required.",
+        "parameters": [
+          {"name": "page", "in": "query", "schema": {"type": "integer", "minimum": 1, "default": 1}},
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10}
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createAddress",
+        "tags": ["Addresses"],
+        "summary": "Create a delivery address",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Address"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required.",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AddressRequest"}}}
+        }
+      }
+    },
+    "/api/v1/addresses/{address_id}/": {
+      "parameters": [
+        {
+          "name": "address_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "get": {
+        "operationId": "getAddress",
+        "tags": ["Addresses"],
+        "summary": "Get a delivery address",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Address"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required."
+      },
+      "patch": {
+        "operationId": "updateAddress",
+        "tags": ["Addresses"],
+        "summary": "Update a delivery address",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Address"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required.",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AddressPatch"}}}
+        }
+      },
+      "delete": {
+        "operationId": "deleteAddress",
+        "tags": ["Addresses"],
+        "summary": "Delete a delivery address",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "204": {"description": "No content"},
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required."
+      }
+    },
+    "/api/v1/cart/": {
+      "get": {
+        "operationId": "getCart",
+        "tags": ["Cart"],
+        "summary": "Get your active cart and estimated totals",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CartRead"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      },
+      "post": {
+        "operationId": "addCartItem",
+        "tags": ["Cart"],
+        "summary": "Add a product or increment its quantity",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CartRead"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CartAddItemRequest"}}}
+        }
+      },
+      "delete": {
+        "operationId": "clearCart",
+        "tags": ["Cart"],
+        "summary": "Clear your active cart",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "204": {"description": "No content"},
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required."
+      }
+    },
+    "/api/v1/cart/items/{item_id}/": {
+      "parameters": [
+        {
+          "name": "item_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "patch": {
+        "operationId": "updateCartItem",
+        "tags": ["Cart"],
+        "summary": "Set an item quantity",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CartRead"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CartUpdateItemRequest"}}}
+        }
+      },
+      "delete": {
+        "operationId": "removeCartItem",
+        "tags": ["Cart"],
+        "summary": "Remove a cart item",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CartRead"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      }
+    },
+    "/api/v1/checkout/": {
+      "post": {
+        "operationId": "checkout",
+        "tags": ["Checkout"],
+        "summary": "Reserve stock and start or retry checkout",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CheckoutResponse"}}}
+          },
+          "200": {
+            "description": "Existing pending order reused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {"$ref": "#/components/schemas/CheckoutResponse"},
+                    {"$ref": "#/components/schemas/PaidCheckoutResponse"}
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "503": {
+            "description": "The payment session is temporarily unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required. Orders reserve stock for 30 minutes. Mock links close one minute before the order deadline. A retry preserves the original order and reservation. A payment confirmed during the request may return just the order ID and its current status.",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CheckoutRequestRequest"}}}
+        }
+      }
+    },
+    "/api/v1/checkout/callback/": {
+      "post": {
+        "operationId": "paymentCallback",
+        "tags": ["Checkout"],
+        "summary": "Receive a verified payment result",
+        "security": [{"mockSignature": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {"received": {"type": "boolean", "const": true}},
+                  "required": ["received"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "503": {
+            "description": "The payment session is temporarily unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "The mock uses a lowercase hex HMAC-SHA256 signature over the exact request bytes. Use a transaction UUID issued by the mock gateway.",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/MockEventRequest"}}}
+        }
+      }
+    },
+    "/api/v1/checkout/mock/{token}/": {
+      "parameters": [{"name": "token", "in": "path", "schema": {"type": "string", "format": "uuid"}, "required": true}],
+      "get": {
+        "operationId": "openMockPayment",
+        "tags": ["Checkout"],
+        "summary": "Open the mock payment page",
+        "security": [],
+        "responses": {
+          "200": {"description": "OK", "content": {"text/html": {"schema": {"type": "string"}}}},
+          "404": {"description": "Resource unavailable"}
+        },
+        "description": "Open the payment URL in a browser. The page issues a CSRF cookie and form token."
+      },
+      "post": {
+        "operationId": "submitMockPayment",
+        "tags": ["Checkout"],
+        "summary": "Simulate payment in the browser",
+        "security": [],
+        "responses": {
+          "200": {"description": "OK", "content": {"text/html": {"schema": {"type": "string"}}}},
+          "400": {"description": "Invalid request or validation failure"},
+          "403": {"description": "Permission denied"},
+          "404": {"description": "Resource unavailable"},
+          "409": {"description": "The payment session is closed"},
+          "503": {"description": "The payment session is temporarily unavailable"}
+        },
+        "description": "Use the form rendered by the GET request to submit with the matching CSRF cookie and token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "outcome": {"type": "string", "enum": ["SUCCESS", "FAILED"]},
+                  "csrfmiddlewaretoken": {"type": "string"}
+                },
+                "required": ["outcome", "csrfmiddlewaretoken"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/": {
+      "get": {
+        "operationId": "listOrders",
+        "tags": ["Orders"],
+        "summary": "List your orders",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/OrderListPage"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required.",
+        "parameters": [
+          {"name": "page", "in": "query", "schema": {"type": "integer", "minimum": 1, "default": 1}},
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10}
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING_PAYMENT", "CONFIRMED", "PARTIALLY_FULFILLED", "COMPLETED", "EXPIRED"]
+            }
+          },
+          {
+            "name": "ordering",
+            "in": "query",
+            "schema": {"type": "string", "enum": ["created_at", "-created_at"]}
+          }
+        ]
+      }
+    },
+    "/api/v1/orders/{order_id}/": {
+      "parameters": [
+        {
+          "name": "order_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "get": {
+        "operationId": "getOrder",
+        "tags": ["Orders"],
+        "summary": "Get an order and its fulfillments",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/OrderDetail"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Customer account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      }
+    },
+    "/api/v1/seller/fulfillments/": {
+      "get": {
+        "operationId": "listFulfillments",
+        "tags": ["Seller fulfillments"],
+        "summary": "List your shop’s fulfillments",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FulfillmentSummaryPage"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required.",
+        "parameters": [
+          {"name": "page", "in": "query", "schema": {"type": "integer", "minimum": 1, "default": 1}},
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10}
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {"type": "string", "enum": ["PENDING", "PREPARING", "SHIPPED", "DELIVERED", "CANCELED"]}
+          }
+        ]
+      }
+    },
+    "/api/v1/seller/fulfillments/{fulfillment_id}/": {
+      "parameters": [
+        {
+          "name": "fulfillment_id",
+          "in": "path",
+          "schema": {"type": "integer", "format": "int64", "minimum": 1},
+          "required": true
+        }
+      ],
+      "get": {
+        "operationId": "getFulfillment",
+        "tags": ["Seller fulfillments"],
+        "summary": "Get a fulfillment and its delivery address",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FulfillmentDetail"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required.",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "schema": {"type": "string", "example": "ar-EG"},
+            "description": "Preferred language. English is the fallback."
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateFulfillment",
+        "tags": ["Seller fulfillments"],
+        "summary": "Advance fulfillment or update tracking",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FulfillmentSummary"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "404": {
+            "description": "Resource unavailable",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Seller account required. Advance one step at a time from PENDING to PREPARING to SHIPPED to DELIVERED. Tracking details can be changed before delivery.",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FulfillmentUpdatePatch"}}}
+        }
+      }
+    },
+    "/api/v1/admin/payments/": {
+      "get": {
+        "operationId": "listPayments",
+        "tags": ["Admin payments"],
+        "summary": "List payment attempts",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AdminPaymentPage"}}}
+          },
+          "400": {
+            "description": "Invalid request or validation failure",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "401": {
+            "description": "Authentication required or invalid credentials",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+          }
+        },
+        "description": "Marketplace administrator account required. Attention flags come from verified payment callbacks. Expired attempts appear in the unfiltered list.",
+        "parameters": [
+          {"name": "page", "in": "query", "schema": {"type": "integer", "minimum": 1, "default": 1}},
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10}
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {"type": "string", "enum": ["PENDING", "SUCCESS", "FAILED"]}
+          },
+          {
+            "name": "requires_attention",
+            "in": "query",
+            "schema": {"type": "string", "enum": ["true", "false"]}
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
+      "mockSignature": {"type": "apiKey", "in": "header", "name": "X-Mock-Signature"}
+    },
+    "schemas": {
+      "Translations": {
+        "type": "object",
+        "properties": {
+          "en": {"type": "string", "minLength": 1, "example": "Keyboard"},
+          "ar": {"type": "string", "example": "لوحة مفاتيح"}
+        },
+        "required": ["en"],
+        "additionalProperties": false
+      },
+      "ApiError": {
+        "type": "object",
+        "additionalProperties": true,
+        "example": {"detail": "Request could not be completed."}
+      },
+      "AddressSnapshot": {
+        "type": "object",
+        "properties": {
+          "first_name": {"type": "string"},
+          "last_name": {"type": "string"},
+          "phone_number": {"type": "string"},
+          "building": {"type": "string"},
+          "street_name": {"type": "string"},
+          "apartment": {"type": "string"},
+          "city": {"type": "string"},
+          "governorate": {"type": "string"},
+          "postal_code": {"type": "string"}
+        }
+      },
+      "TokenPair": {
+        "type": "object",
+        "properties": {"access_token": {"type": "string"}, "refresh_token": {"type": "string"}},
+        "required": ["access_token", "refresh_token"]
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "username": {"type": "string"},
+          "email": {"type": "string", "format": "email"},
+          "first_name": {"type": "string", "maxLength": 150},
+          "last_name": {"type": "string", "maxLength": 150},
+          "phone": {"type": "string", "maxLength": 20},
+          "profile_image": {"type": ["string", "null"], "maxLength": 255},
+          "role": {"type": "string", "enum": ["ADMIN", "CUSTOMER", "SELLER"]}
+        },
+        "required": ["id", "username", "email", "first_name", "last_name", "phone", "profile_image", "role"]
+      },
+      "ProfileResponse": {
+        "type": "object",
+        "properties": {"user": {"$ref": "#/components/schemas/Profile"}},
+        "required": ["user"]
+      },
+      "AuthenticationResponse": {
+        "type": "object",
+        "properties": {
+          "user": {"$ref": "#/components/schemas/Profile"},
+          "auth": {"$ref": "#/components/schemas/TokenPair"}
+        },
+        "required": ["user", "auth"]
+      },
+      "SignupRequest": {
+        "type": "object",
+        "properties": {
+          "username": {"type": "string", "maxLength": 150},
+          "email": {"type": "string", "format": "email"},
+          "first_name": {"type": "string", "maxLength": 150},
+          "last_name": {"type": "string", "maxLength": 150},
+          "password": {"type": "string"},
+          "phone": {"type": "string", "maxLength": 20},
+          "role": {"type": "string", "enum": ["CUSTOMER", "SELLER"]},
+          "profile_image": {"type": ["string", "null"], "maxLength": 255}
+        },
+        "required": ["username", "email", "first_name", "last_name", "password", "phone", "role"]
+      },
+      "ProfilePatch": {
+        "type": "object",
+        "properties": {
+          "first_name": {"type": "string", "maxLength": 150},
+          "last_name": {"type": "string", "maxLength": 150},
+          "phone": {"type": "string", "maxLength": 20},
+          "profile_image": {"type": ["string", "null"], "maxLength": 255}
+        }
+      },
+      "PublicShop": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "logo_url": {"type": ["string", "null"], "maxLength": 500},
+          "shipping_fee": {"type": "string", "example": "25.00"},
+          "is_active": {"type": "boolean"}
+        },
+        "required": ["id", "name", "description", "logo_url", "shipping_fee", "is_active"]
+      },
+      "ShopApplication": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "logo_url": {"type": ["string", "null"], "maxLength": 500},
+          "shipping_fee": {"type": "string", "example": "25.00"},
+          "is_active": {"type": "boolean"},
+          "status": {"type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"]}
+        },
+        "required": ["id", "name", "description", "logo_url", "shipping_fee", "is_active", "status"]
+      },
+      "ShopCreateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {"$ref": "#/components/schemas/Translations"},
+          "description": {"$ref": "#/components/schemas/Translations"},
+          "logo_url": {"type": ["string", "null"], "maxLength": 500},
+          "shipping_fee": {"oneOf": [{"type": "string", "example": "25.00"}, {"type": "number"}]}
+        },
+        "required": ["name", "description", "shipping_fee"]
+      },
+      "SellerShop": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "logo_url": {"type": ["string", "null"], "maxLength": 500},
+          "shipping_fee": {"type": "string", "example": "25.00"},
+          "is_active": {"type": "boolean"},
+          "status": {"type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"]},
+          "rejection_reason": {"type": ["string", "null"]}
+        },
+        "required": ["id", "name", "description", "logo_url", "shipping_fee", "is_active", "status", "rejection_reason"]
+      },
+      "ShopUpdatePatch": {
+        "type": "object",
+        "properties": {
+          "name": {"$ref": "#/components/schemas/Translations"},
+          "description": {"$ref": "#/components/schemas/Translations"},
+          "logo_url": {"type": ["string", "null"], "maxLength": 500},
+          "shipping_fee": {"oneOf": [{"type": "string", "example": "25.00"}, {"type": "number"}]},
+          "is_active": {"type": "boolean"}
+        }
+      },
+      "AdminShopList": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "logo_url": {"type": ["string", "null"], "maxLength": 500},
+          "shipping_fee": {"type": "string", "example": "25.00"},
+          "is_active": {"type": "boolean"},
+          "status": {"type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"]},
+          "user_id": {"type": "integer", "format": "int64"}
+        },
+        "required": ["id", "name", "description", "logo_url", "shipping_fee", "is_active", "status", "user_id"]
+      },
+      "ShopOwner": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "username": {"type": "string", "maxLength": 150},
+          "email": {"type": "string", "format": "email"},
+          "first_name": {"type": "string", "maxLength": 150},
+          "last_name": {"type": "string", "maxLength": 150},
+          "phone": {"type": "string", "maxLength": 20}
+        },
+        "required": ["id", "username", "email", "first_name", "last_name", "phone"]
+      },
+      "AdminShopDetail": {
+        "type": "object",
+        "properties": {
+          "user": {"$ref": "#/components/schemas/ShopOwner"},
+          "shop": {"$ref": "#/components/schemas/SellerShop"}
+        },
+        "required": ["user", "shop"]
+      },
+      "ShopDecisionRequest": {
+        "type": "object",
+        "properties": {
+          "status": {"type": "string", "enum": ["APPROVED", "REJECTED"]},
+          "rejection_reason": {"type": ["string", "null"]}
+        },
+        "required": ["status"]
+      },
+      "CategoryRead": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "icon_url": {"type": ["string", "null"], "format": "uri"},
+          "is_active": {"type": "boolean"}
+        },
+        "required": ["id", "name", "description", "icon_url", "is_active"]
+      },
+      "CategoryReadPage": {
+        "type": "object",
+        "properties": {
+          "count": {"type": "integer", "minimum": 0},
+          "next": {"type": ["string", "null"], "format": "uri"},
+          "previous": {"type": ["string", "null"], "format": "uri"},
+          "results": {"type": "array", "items": {"$ref": "#/components/schemas/CategoryRead"}}
+        },
+        "required": ["count", "next", "previous", "results"]
+      },
+      "CategoryCreateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {"$ref": "#/components/schemas/Translations"},
+          "description": {"$ref": "#/components/schemas/Translations"},
+          "icon_url": {"type": ["string", "null"], "format": "uri"}
+        },
+        "required": ["name", "description"]
+      },
+      "CategoryUpdatePatch": {
+        "type": "object",
+        "properties": {
+          "name": {"$ref": "#/components/schemas/Translations"},
+          "description": {"$ref": "#/components/schemas/Translations"},
+          "icon_url": {"type": ["string", "null"], "format": "uri"},
+          "is_active": {"type": "boolean"}
+        }
+      },
+      "ProductImageURL": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "image_path": {"type": "string", "format": "uri"},
+          "is_primary": {"type": "boolean"}
+        },
+        "required": ["id", "image_path", "is_primary"]
+      },
+      "ProductRead": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "price": {"type": "string", "example": "25.00"},
+          "stock": {"type": "integer", "format": "int64", "minimum": 0, "maximum": 2147483647},
+          "is_published": {"type": "boolean"},
+          "shop_id": {"type": "integer", "format": "int64"},
+          "category_id": {"type": "integer", "format": "int64"},
+          "images": {"type": "array", "items": {"$ref": "#/components/schemas/ProductImageURL"}}
+        },
+        "required": ["id", "title", "description", "price", "stock", "is_published", "shop_id", "category_id", "images"]
+      },
+      "ProductReadPage": {
+        "type": "object",
+        "properties": {
+          "count": {"type": "integer", "minimum": 0},
+          "next": {"type": ["string", "null"], "format": "uri"},
+          "previous": {"type": ["string", "null"], "format": "uri"},
+          "results": {"type": "array", "items": {"$ref": "#/components/schemas/ProductRead"}}
+        },
+        "required": ["count", "next", "previous", "results"]
+      },
+      "ProductCreateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {"$ref": "#/components/schemas/Translations"},
+          "description": {"$ref": "#/components/schemas/Translations"},
+          "price": {"oneOf": [{"type": "string", "example": "25.00"}, {"type": "number"}]},
+          "stock": {"type": "integer", "format": "int64", "minimum": 0, "maximum": 2147483647},
+          "category_id": {"type": "integer", "format": "int64", "minimum": 1, "maximum": 9223372036854775807}
+        },
+        "required": ["title", "description", "price", "stock", "category_id"]
+      },
+      "ProductUpdatePatch": {
+        "type": "object",
+        "properties": {
+          "title": {"$ref": "#/components/schemas/Translations"},
+          "description": {"$ref": "#/components/schemas/Translations"},
+          "price": {"oneOf": [{"type": "string", "example": "25.00"}, {"type": "number"}]},
+          "stock": {"type": "integer", "format": "int64", "minimum": 0, "maximum": 2147483647},
+          "category_id": {"type": "integer", "format": "int64", "minimum": 1, "maximum": 9223372036854775807},
+          "is_published": {"type": "boolean"}
+        }
+      },
+      "ProductImage": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "image_path": {"type": "string", "maxLength": 500},
+          "is_primary": {"type": "boolean"}
+        },
+        "required": ["id", "image_path", "is_primary"]
+      },
+      "ProductImageCreateRequest": {
+        "type": "object",
+        "properties": {"image_path": {"type": "string", "maxLength": 500}},
+        "required": ["image_path"]
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "first_name": {"type": "string", "maxLength": 150},
+          "last_name": {"type": "string", "maxLength": 150},
+          "phone_number": {"type": "string", "maxLength": 20},
+          "building": {"type": "string", "maxLength": 100},
+          "street_name": {"type": "string", "maxLength": 255},
+          "apartment": {"type": "string", "maxLength": 100},
+          "city": {"type": "string", "maxLength": 100},
+          "governorate": {"type": "string", "maxLength": 100},
+          "postal_code": {"type": "string", "maxLength": 20}
+        },
+        "required": [
+          "id",
+          "first_name",
+          "last_name",
+          "phone_number",
+          "building",
+          "street_name",
+          "apartment",
+          "city",
+          "governorate",
+          "postal_code"
+        ]
+      },
+      "AddressPage": {
+        "type": "object",
+        "properties": {
+          "count": {"type": "integer", "minimum": 0},
+          "next": {"type": ["string", "null"], "format": "uri"},
+          "previous": {"type": ["string", "null"], "format": "uri"},
+          "results": {"type": "array", "items": {"$ref": "#/components/schemas/Address"}}
+        },
+        "required": ["count", "next", "previous", "results"]
+      },
+      "AddressRequest": {
+        "type": "object",
+        "properties": {
+          "first_name": {"type": "string", "maxLength": 150},
+          "last_name": {"type": "string", "maxLength": 150},
+          "phone_number": {"type": "string", "maxLength": 20},
+          "building": {"type": "string", "maxLength": 100},
+          "street_name": {"type": "string", "maxLength": 255},
+          "apartment": {"type": "string", "maxLength": 100},
+          "city": {"type": "string", "maxLength": 100},
+          "governorate": {"type": "string", "maxLength": 100},
+          "postal_code": {"type": "string", "maxLength": 20}
+        },
+        "required": [
+          "first_name",
+          "last_name",
+          "phone_number",
+          "building",
+          "street_name",
+          "apartment",
+          "city",
+          "governorate",
+          "postal_code"
+        ]
+      },
+      "AddressPatch": {
+        "type": "object",
+        "properties": {
+          "first_name": {"type": "string", "maxLength": 150},
+          "last_name": {"type": "string", "maxLength": 150},
+          "phone_number": {"type": "string", "maxLength": 20},
+          "building": {"type": "string", "maxLength": 100},
+          "street_name": {"type": "string", "maxLength": 255},
+          "apartment": {"type": "string", "maxLength": 100},
+          "city": {"type": "string", "maxLength": 100},
+          "governorate": {"type": "string", "maxLength": 100},
+          "postal_code": {"type": "string", "maxLength": 20}
+        }
+      },
+      "CartItemRead": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "product_id": {"type": "integer", "format": "int64"},
+          "title": {"type": "string"},
+          "shop_id": {"type": "integer", "format": "int64"},
+          "stock": {"type": "integer", "format": "int64"},
+          "price": {"type": "string", "example": "25.00"},
+          "count": {"type": "integer", "format": "int64"},
+          "is_available": {"type": "boolean"},
+          "line_total": {"type": "string", "example": "25.00"}
+        },
+        "required": ["id", "product_id", "title", "shop_id", "stock", "price", "count", "is_available", "line_total"]
+      },
+      "CartRead": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "item_count": {"type": "integer", "format": "int64"},
+          "total_count": {"type": "integer", "format": "int64"},
+          "sub_total": {"type": "string", "example": "25.00"},
+          "total_shipping": {"type": "string", "example": "25.00"},
+          "total": {"type": "string", "example": "25.00"},
+          "items": {"type": "array", "items": {"$ref": "#/components/schemas/CartItemRead"}}
+        },
+        "required": ["id", "item_count", "total_count", "sub_total", "total_shipping", "total", "items"]
+      },
+      "CartAddItemRequest": {
+        "type": "object",
+        "properties": {
+          "count": {"type": "integer", "format": "int64", "minimum": 1, "maximum": 2147483647},
+          "product_id": {"type": "integer", "format": "int64", "minimum": 1, "maximum": 9223372036854775807}
+        },
+        "required": ["count", "product_id"]
+      },
+      "CartUpdateItemRequest": {
+        "type": "object",
+        "properties": {"count": {"type": "integer", "format": "int64", "minimum": 1, "maximum": 2147483647}},
+        "required": ["count"]
+      },
+      "CheckoutResponse": {
+        "type": "object",
+        "properties": {
+          "order_id": {"type": "integer", "format": "int64"},
+          "order_status": {"type": "string", "enum": ["PENDING_PAYMENT"]},
+          "payment_id": {"type": "integer", "format": "int64"},
+          "payment_url": {"type": "string", "format": "uri"},
+          "expires_at": {"type": "string", "format": "date-time"},
+          "payment_url_expires_at": {"type": "string", "format": "date-time"},
+          "subtotal": {"type": "string", "example": "25.00"},
+          "shipping_total": {"type": "string", "example": "25.00"},
+          "total_amount": {"type": "string", "example": "25.00"}
+        },
+        "required": [
+          "order_id",
+          "order_status",
+          "payment_id",
+          "payment_url",
+          "expires_at",
+          "payment_url_expires_at",
+          "subtotal",
+          "shipping_total",
+          "total_amount"
+        ]
+      },
+      "PaidCheckoutResponse": {
+        "type": "object",
+        "properties": {
+          "order_id": {"type": "integer", "format": "int64"},
+          "order_status": {"type": "string", "enum": ["CONFIRMED", "PARTIALLY_FULFILLED", "COMPLETED"]}
+        },
+        "required": ["order_id", "order_status"]
+      },
+      "CheckoutRequestRequest": {
+        "type": "object",
+        "properties": {"address_id": {"type": "integer", "format": "int64", "minimum": 1, "maximum": 9223372036854775807}},
+        "required": ["address_id"]
+      },
+      "MockEventRequest": {
+        "type": "object",
+        "properties": {
+          "event_id": {"type": "integer", "format": "int64"},
+          "transaction_id": {"type": "string", "format": "uuid"},
+          "order_reference": {"type": "integer", "format": "int64", "minimum": 1, "maximum": 9223372036854775807},
+          "status": {"type": "string", "enum": ["SUCCESS", "FAILED"]},
+          "amount": {"oneOf": [{"type": "string", "example": "25.00"}, {"type": "number"}]},
+          "currency": {"type": "string", "maxLength": 3}
+        },
+        "required": ["event_id", "transaction_id", "order_reference", "status", "amount", "currency"]
+      },
+      "OrderList": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "status": {
+            "type": "string",
+            "enum": ["PENDING_PAYMENT", "CONFIRMED", "PARTIALLY_FULFILLED", "COMPLETED", "EXPIRED"]
+          },
+          "subtotal": {"type": "string", "example": "25.00"},
+          "shipping_total": {"type": "string", "example": "25.00"},
+          "total_amount": {"type": "string", "example": "25.00"},
+          "payment_status": {"type": ["string", "null"], "enum": ["PENDING", "SUCCESS", "FAILED", "EXPIRED", null]},
+          "created_at": {"type": "string", "format": "date-time"},
+          "items_count": {"type": "integer", "format": "int64"}
+        },
+        "required": [
+          "id",
+          "status",
+          "subtotal",
+          "shipping_total",
+          "total_amount",
+          "payment_status",
+          "created_at",
+          "items_count"
+        ]
+      },
+      "OrderListPage": {
+        "type": "object",
+        "properties": {
+          "count": {"type": "integer", "minimum": 0},
+          "next": {"type": ["string", "null"], "format": "uri"},
+          "previous": {"type": ["string", "null"], "format": "uri"},
+          "results": {"type": "array", "items": {"$ref": "#/components/schemas/OrderList"}}
+        },
+        "required": ["count", "next", "previous", "results"]
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "product_id": {"type": "integer", "format": "int64"},
+          "title": {"type": "string"},
+          "quantity": {"type": "integer", "format": "int64", "minimum": 0, "maximum": 2147483647},
+          "unit_price": {"type": "string", "example": "25.00"},
+          "status": {"type": "string", "enum": ["ACTIVE", "CANCELED"]},
+          "fulfillment_id": {"type": ["integer", "null"], "format": "int64"}
+        },
+        "required": ["id", "product_id", "title", "quantity", "unit_price", "status", "fulfillment_id"]
+      },
+      "OrderFulfillment": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "shop_id": {"type": "integer", "format": "int64"},
+          "status": {"type": "string", "enum": ["PENDING", "PREPARING", "SHIPPED", "DELIVERED", "CANCELED"]},
+          "shipping_fee": {"type": "string", "example": "25.00"},
+          "tracking_number": {"type": ["string", "null"], "maxLength": 150},
+          "carrier_name": {"type": ["string", "null"], "maxLength": 150}
+        },
+        "required": ["id", "shop_id", "status", "shipping_fee", "tracking_number", "carrier_name"]
+      },
+      "OrderDetail": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "status": {
+            "type": "string",
+            "enum": ["PENDING_PAYMENT", "CONFIRMED", "PARTIALLY_FULFILLED", "COMPLETED", "EXPIRED"]
+          },
+          "subtotal": {"type": "string", "example": "25.00"},
+          "shipping_total": {"type": "string", "example": "25.00"},
+          "total_amount": {"type": "string", "example": "25.00"},
+          "payment_status": {"type": ["string", "null"], "enum": ["PENDING", "SUCCESS", "FAILED", "EXPIRED", null]},
+          "created_at": {"type": "string", "format": "date-time"},
+          "address_snapshot": {"$ref": "#/components/schemas/AddressSnapshot"},
+          "items": {"type": "array", "items": {"$ref": "#/components/schemas/OrderItem"}},
+          "fulfillments": {"type": "array", "items": {"$ref": "#/components/schemas/OrderFulfillment"}},
+          "expires_at": {"type": "string", "format": "date-time"}
+        },
+        "required": [
+          "id",
+          "status",
+          "subtotal",
+          "shipping_total",
+          "total_amount",
+          "payment_status",
+          "created_at",
+          "address_snapshot",
+          "items",
+          "fulfillments",
+          "expires_at"
+        ]
+      },
+      "FulfillmentSummary": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "order_id": {"type": "integer", "format": "int64"},
+          "shop_id": {"type": "integer", "format": "int64"},
+          "status": {"type": "string", "enum": ["PENDING", "PREPARING", "SHIPPED", "DELIVERED", "CANCELED"]},
+          "shipping_fee": {"type": "string", "example": "25.00"},
+          "carrier_name": {"type": ["string", "null"], "maxLength": 150},
+          "tracking_number": {"type": ["string", "null"], "maxLength": 150}
+        },
+        "required": ["id", "order_id", "shop_id", "status", "shipping_fee", "carrier_name", "tracking_number"]
+      },
+      "FulfillmentSummaryPage": {
+        "type": "object",
+        "properties": {
+          "count": {"type": "integer", "minimum": 0},
+          "next": {"type": ["string", "null"], "format": "uri"},
+          "previous": {"type": ["string", "null"], "format": "uri"},
+          "results": {"type": "array", "items": {"$ref": "#/components/schemas/FulfillmentSummary"}}
+        },
+        "required": ["count", "next", "previous", "results"]
+      },
+      "FulfillmentItem": {
+        "type": "object",
+        "properties": {
+          "order_item_id": {"type": "integer", "format": "int64"},
+          "product_id": {"type": "integer", "format": "int64"},
+          "title": {"type": "string"},
+          "quantity": {"type": "integer", "format": "int64", "minimum": 0, "maximum": 2147483647},
+          "unit_price": {"type": "string", "example": "25.00"}
+        },
+        "required": ["order_item_id", "product_id", "title", "quantity", "unit_price"]
+      },
+      "FulfillmentDetail": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "order_id": {"type": "integer", "format": "int64"},
+          "shop_id": {"type": "integer", "format": "int64"},
+          "status": {"type": "string", "enum": ["PENDING", "PREPARING", "SHIPPED", "DELIVERED", "CANCELED"]},
+          "shipping_fee": {"type": "string", "example": "25.00"},
+          "carrier_name": {"type": ["string", "null"], "maxLength": 150},
+          "tracking_number": {"type": ["string", "null"], "maxLength": 150},
+          "items": {"type": "array", "items": {"$ref": "#/components/schemas/FulfillmentItem"}},
+          "delivery_address": {"$ref": "#/components/schemas/AddressSnapshot"}
+        },
+        "required": [
+          "id",
+          "order_id",
+          "shop_id",
+          "status",
+          "shipping_fee",
+          "carrier_name",
+          "tracking_number",
+          "items",
+          "delivery_address"
+        ]
+      },
+      "FulfillmentUpdatePatch": {
+        "type": "object",
+        "properties": {
+          "status": {"type": "string", "enum": ["PENDING", "PREPARING", "SHIPPED", "DELIVERED"]},
+          "carrier_name": {"type": ["string", "null"], "maxLength": 150},
+          "tracking_number": {"type": ["string", "null"], "maxLength": 150}
+        }
+      },
+      "AdminPayment": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "format": "int64"},
+          "order_id": {"type": "integer", "format": "int64"},
+          "transaction_id": {"type": ["integer", "null"], "format": "int64"},
+          "status": {"type": "string", "enum": ["PENDING", "SUCCESS", "FAILED", "EXPIRED"]},
+          "requires_attention": {"type": "boolean"},
+          "reason": {
+            "type": ["string", "null"],
+            "enum": ["PAYMENT_AFTER_ORDER_EXPIRATION", "ADDITIONAL_CHARGE", null]
+          }
+        },
+        "required": ["id", "order_id", "transaction_id", "status", "requires_attention", "reason"]
+      },
+      "AdminPaymentPage": {
+        "type": "object",
+        "properties": {
+          "count": {"type": "integer", "minimum": 0},
+          "next": {"type": ["string", "null"], "format": "uri"},
+          "previous": {"type": ["string", "null"], "format": "uri"},
+          "results": {"type": "array", "items": {"$ref": "#/components/schemas/AdminPayment"}}
+        },
+        "required": ["count", "next", "previous", "results"]
+      }
+    }
+  }
+}

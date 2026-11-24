@@ -14,6 +14,7 @@ COPY manage.py .
 COPY config/ ./config/
 COPY apps/ ./apps/
 COPY common/ ./common/
+COPY design/openapi.json ./design/openapi.json
 
 USER django
 EXPOSE 8000
